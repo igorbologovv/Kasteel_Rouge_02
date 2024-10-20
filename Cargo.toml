@@ -1,0 +1,11 @@
+[package]
+name = "Casteel_Rouge_02"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14.2"
+cgmath = "0.18.0"
+rand = "0.8.5"
+smallvec = "1.13.2"
+spatial_hash_3d = "0.1.3"
