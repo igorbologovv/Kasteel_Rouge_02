@@ -1,4 +1,4 @@
-use crate::components::{Condition, Soldier, Team};
+use crate::components::{Condition, Soldier, Team, SpriteSize};
 use crate::resources::GameTextures;
 use crate::resources::WinSize;
 use bevy::prelude::*;
@@ -47,8 +47,9 @@ fn spawn_units(mut commands: Commands, game_textures: Res<GameTextures>, win_siz
                 },
                 ..Default::default()
             })
-            .insert(Soldier::new(Vector3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
+            .insert(Soldier::new(Vec3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
             .insert(Team(0))
+            .insert(SpriteSize { height: 32, width:32 })
             .insert(Condition {
                 morale: 0,
                 stamina: 0,
@@ -73,7 +74,14 @@ fn spawn_units(mut commands: Commands, game_textures: Res<GameTextures>, win_siz
                 },
                 ..Default::default()
             })
-            .insert(Soldier::new(Vector3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
-            .insert(Team(1)); // Команда 1 для второй группы
+            .insert(Soldier::new(Vec3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
+            .insert(Team(1))
+            .insert(SpriteSize { height: 32, width:32 })
+            .insert(Condition {
+                morale: 0,
+                stamina: 0,
+                strength: 0,
+                danger_perception: 0,
+            }); // Команда 1 для второй группы
     }
 }
