@@ -25,57 +25,46 @@ pub fn initialize_spatial_hash(
         spatial_hash.add_entity(  initial_position, soldier_entity);
     }
 }
-//This function is checking the position of a soldier after move and if the pos has changed it updates the spatial hash
-fn update_entity_in_sh(spatial_hash: &mut SpatialHash, entt: Entity, old_pos: Vec3, new_pos: Vec3) {
-    let old_coords = spatial_hash.to_grid_coords(old_pos);
-    let new_coords = spatial_hash.to_grid_coords(new_pos);
-
-    // if entity changed pos
-    if old_coords != new_coords {
+//This function shoud TAKE a vector of buffers which contains soldiers to be updated
+//Soldier has a field with an old shcoords already
+fn update_entity_in_sh(spatial_hash: &mut SpatialHash, update_buffer: Vec<(Entity, Vec3, Vec3)>) {
+    for (entt, old_pos, new_pos) in update_buffer {
+        
         spatial_hash.remove_entity(old_pos, entt);
-         spatial_hash.add_entity(new_pos, entt);
+        spatial_hash.add_entity(new_pos, entt);
     }
-
-    // Add entty anyway to be sure it did not get lost anywhere I doubt this desission but better safe
-
 }
 
+/*This function is responsible for updating soldier position in the world and
+If position was chaned in sh then add it to update buffer
+*/
 pub fn movable_system(
-    win_size: Res<WinSize>,
     mut spatial_hash: ResMut<crate::SpatialHash>,
-    mut soldier: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
+    mut soldier_query: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
 ) {
-    //print!("...........Movable system call..........");
-    let min = Vector3 { x: 0, y: 0, z: 0 };
-    let max = Vector3 { x: 40, y: 40, z: 1 };
-    // Borrow spatial_hash as mutable only in this block to avoid conflicts
-    {
-        let spatial_hash = &mut *spatial_hash;
-        for (soldier_entity, mut transform, _sprite_size, mut _soldier_component, team) in
-            soldier.iter_mut()
-        {
-            let old_position = transform.translation;
+    let mut update_buffer: Vec<(Entity, Vec3, Vec3)> = Vec::new();
 
-            //TODO MOVE LOGIC HERE IS A MOVE LOGIC AND ASSIGN NEW VALUES TO POS
-            // soldier_comppnent.pos.x+=1;
-            //pos.y +=1;
-            //etc.....
-            let new_position = old_position + Vec3::new(0.0, 0.0, 0.0);
-            //let new_position = old_position + Vec3::new(0.0, 0.0, 0.0);
-            transform.translation = new_position;
-            update_entity_in_sh(
-                spatial_hash,
-                soldier_entity,
-                old_position,
-                transform.translation,
-            );
+    // Moving soldier and adding to update buffer if needed
+    for (soldier_entity, mut transform, _sprite_size, mut soldier, _team) in soldier_query.iter_mut() {
+        let old_position = transform.translation;
+
+        // HERE SHOULD BE a moving logic
+        let new_position = old_position + Vec3::new(0.0, 0.0, 0.0); // Пример перемещения вправо
+        transform.translation = new_position;
+
+        // Transform positions to shcoords
+        let old_coords = spatial_hash.to_grid_coords(old_position);
+        let new_coords = spatial_hash.to_grid_coords(new_position);
+
+        // Check if position was changed
+        if old_coords != new_coords {
+            //Update sh coords in struct Soldier
+            soldier.sh_coords = new_coords;
+            // Добавляем запись в буфер для обновления spatial hash
+            update_buffer.push((soldier_entity, old_position, new_position));
         }
     }
 
-    // Now it's safe to mutably borrow spatial_hash again
-    // for (_pos, _idx, cell_content) in spatial_hash.iter_cubes_mut(min, max) {
-    //     if cell_content.len() > 0 {
-    //         println!("Содержимое ячейки {:?}: {:?}", _idx, cell_content);
-    //     }
-    // }
+    // Применяем все изменения к spatial hash
+    update_entity_in_sh(&mut spatial_hash, update_buffer);
 }

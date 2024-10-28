@@ -1,5 +1,5 @@
 use crate::components::{AIComponent, Condition, Soldier, SpriteSize, Squad, Team};
-use crate::resources::GameTextures;
+use crate::resources::{GameTextures, SpatialHash};
 use crate::resources::WinSize;
 use bevy::prelude::*;
 use rand::Rng;
@@ -31,7 +31,7 @@ fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
         game_textures.archer.clone()
     }
 }
-fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>) {
+fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>, mut spatial_hash: ResMut<SpatialHash>) {
     // Future parameterization: allow dynamic team/squad setup
     println!("SPAWN_SQUADS");
     commands.spawn(Camera2dBundle::default());
@@ -46,15 +46,17 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
         for squad_id in 0..squad_count {
             for _i in 0..squad_dimensions.0 {
                 for _j in 0..squad_dimensions.1 {
+                    let p = define_position(
+                        team_id as u8 + 1,
+                        winsize.w,
+                        winsize.h,
+                    );
+                    let shcoords = spatial_hash.to_grid_coords(p);
                     commands
                         .spawn(SpriteBundle {
                             texture: texture_handle.clone(),
                             transform: Transform {
-                                translation: define_position(
-                                    team_id as u8 + 1,
-                                    winsize.w,
-                                    winsize.h,
-                                ),
+                                translation:p ,
                                 scale: Vec3::splat(1.0),
                                 ..Default::default()
                             },
@@ -67,6 +69,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             squad_num: squad_id,
                             hit_chance: 50,
                             dodge_chance: 50,
+                            sh_coords: shcoords
                         })
                         .insert(SpriteSize {
                             height: 32,
