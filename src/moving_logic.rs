@@ -22,7 +22,7 @@ pub fn initialize_spatial_hash(
     for (soldier_entity, _soldier_component, pos) in soldier_query.iter() {
         let initial_position = pos.translation;
 
-        push_entity_to_sh(&mut spatial_hash, soldier_entity, initial_position);
+        spatial_hash.add_entity(  initial_position, soldier_entity);
     }
 }
 //This function is checking the position of a soldier after move and if the pos has changed it updates the spatial hash
@@ -32,47 +32,12 @@ fn update_entity_in_sh(spatial_hash: &mut SpatialHash, entt: Entity, old_pos: Ve
 
     // if entity changed pos
     if old_coords != new_coords {
-        let old_index = spatial_hash
-            .pos_to_index(old_coords)
-            .expect("Position out of bounds");
-        let old_cellref = spatial_hash
-            .get_mut(old_index)
-            .expect("Index out of bounds");
-        old_cellref.retain(|e| *e != entt);
+        spatial_hash.remove_entity(old_pos, entt);
+         spatial_hash.add_entity(new_pos, entt);
     }
 
-    // Add if entt is not yet there
-    let new_index = spatial_hash
-        .pos_to_index(new_coords)
-        .expect("Position out of bounds");
-    let new_cellref = spatial_hash
-        .get_mut(new_index)
-        .expect("Index out of bounds");
+    // Add entty anyway to be sure it did not get lost anywhere I doubt this desission but better safe
 
-    if !new_cellref.contains(&entt) {
-        new_cellref.push(entt);
-    }
-}
-
-fn push_entity_to_sh(spatial_hash: &mut SpatialHash, entt: Entity, pos: Vec3) {
-    let t = spatial_hash.to_grid_coords(pos);
-    let index = spatial_hash
-        .pos_to_index(t)
-        .expect("Position out of bounds");
-    let cellref = spatial_hash.get_mut(index).expect("Index out of bounds");
-
-    println!("Current entities in cell: {:?}", cellref);
-
-    // Проверяем наличие сущности в ячейке
-    if cellref.iter().find(|&&e| e == entt).is_none() {
-        println!(
-            "Entity with SHindex {} and coordinates shX:{} and shY: {}, world: {} added ENTITY: {} \n",
-            index, t.x, t.y, pos, &entt
-        );
-        cellref.push(entt);
-    } else {
-        println!("Entity {} already exists in new cell!", entt);
-    }
 }
 
 pub fn movable_system(

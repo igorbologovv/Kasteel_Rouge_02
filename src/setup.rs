@@ -37,7 +37,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
     commands.spawn(Camera2dBundle::default());
 
     // Hardcoded example: Each team has a specified number of squads and each element is a team and value is the amount of squads
-    let teams_squads = vec![1];
+    let teams_squads = vec![1, 1];
     let squad_dimensions = (2, 2);
 
     for (team_id, &squad_count) in teams_squads.iter().enumerate() {

@@ -2,7 +2,7 @@ mod components;
 pub mod moving_logic;
 mod resources;
 mod setup;
-mod smart_move;
+
 pub mod winit;
 use crate::moving_logic::SpatialHashPlugin;
 use crate::resources::WinSize;

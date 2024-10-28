@@ -36,6 +36,39 @@ impl SpatialHash {
 
         Vector3 { x, y, z: 0 }
     }
+
+    // Добавление и удаление объектов из ячеек
+    pub fn add_entity(&mut self, pos: Vec3, entt: Entity) {
+        let t = self.to_grid_coords(pos);
+        let index = self
+            .pos_to_index(t)
+            .expect("Position out of bounds");
+        let cellref = self.get_mut(index).expect("Index out of bounds");
+
+        println!("Current entities in cell: {:?}", cellref);
+
+        // Проверяем наличие сущности в ячейке
+        if cellref.iter().find(|&&e| e == entt).is_none() {
+            println!(
+                "Entity with SHindex {} and coordinates shX:{} and shY: {}, world: {} added ENTITY: {} \n",
+                index, t.x, t.y, pos, &entt
+            );
+            cellref.push(entt);
+        } else {
+            println!("Entity {} already exists in new cell!", entt);
+        }
+    }
+
+    pub fn remove_entity(&mut self, pos: Vec3, entt: Entity) {
+        let coords = self.to_grid_coords(pos);
+        let index = self
+            .pos_to_index(coords)
+            .expect("Position out of bounds");
+        let cellref = self.get_mut(index).expect("Index out of bounds");
+
+        // Удаление объекта из ячейки
+        cellref.retain(|e| *e != entt);
+    }
 }
 
 #[derive(Resource)]
