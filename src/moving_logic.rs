@@ -46,6 +46,7 @@ pub fn movable_system(
     mut spatial_hash: ResMut<crate::SpatialHash>,
     mut soldier: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
 ) {
+    print!("...........Movable system call..........");
     let min = Vector3 { x: 0, y: 0, z: 0 };
     let max = Vector3 {
         x: 800,
@@ -58,6 +59,7 @@ pub fn movable_system(
         for (soldier_entity, mut transform, sprite_size, mut soldier_component, team) in
             soldier.iter_mut()
         {
+            println!("Найден солдат: {:?}", soldier_entity);
             let old_position = transform.translation;
 
             //TODO MOVE LOGIC HERE IS A MOVE LOGIC AND ASSIGN NEW VALUES TO POS

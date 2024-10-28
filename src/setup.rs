@@ -62,6 +62,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                         })
                         .insert(Team((team_id + 1) as u8)) // Store team ID as u8
                         .insert(Squad(squad_id))
+                        .insert(Soldier{ is_active: false, is_moving: false, velocity: (1,1, 0), squad_num: squad_id })
                         .insert(SpriteSize {
                             height: 32,
                             width: 32,

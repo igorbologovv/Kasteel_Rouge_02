@@ -8,7 +8,7 @@ pub struct Soldier {
     pub squad_num: u16,
 }
 impl Soldier {
-    pub fn new(_pos: Vec3, vx: i8, vy: i8, vz: i8, squad_num: u16) -> Self {
+    pub fn new(vx: i8, vy: i8, vz: i8, squad_num: u16) -> Self {
         Soldier {
             is_active: false,
             is_moving: false,
