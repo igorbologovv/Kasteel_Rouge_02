@@ -1,12 +1,12 @@
 mod components;
-pub mod move_logic;
+pub mod moving_logic;
 mod resources;
 mod setup;
 pub mod winit;
+use crate::moving_logic::movable_system;
 use crate::resources::WinSize;
 use crate::setup::InitialState;
 use crate::winit::winit;
-use crate::move_logic::movable_system;
 use bevy::prelude::*;
 use resources::SpatialHash;
 use std::time::Duration;
@@ -35,7 +35,7 @@ impl Default for GameConstants {
             squad_size: 10,
             round_duration: Duration::from_secs(10),
             map_size: 4000.0,
-            spatial_hash_cell_size: 16.0,
+            spatial_hash_cell_size: 64.0,
         }
     }
 }
@@ -45,12 +45,12 @@ fn main() {
     let sh_cells = (game_consts.map_size / game_consts.spatial_hash_cell_size).ceil() as usize;
     let spatial_hash = SpatialHash::new(sh_cells, sh_cells, game_consts.spatial_hash_cell_size);
     App::new()
-    .insert_resource(UpdateTimer {
-        timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating), // Обновление каждую секунду
-    })
-    .insert_resource(WinSize { w: WIN_X, h: WIN_Y })
-    .insert_resource(spatial_hash)
-    .add_plugins((InitialState, DefaultPlugins.set(winit(WIN_X, WIN_Y))))
-    .add_systems(Update, movable_system)
-    .run();
+        .insert_resource(UpdateTimer {
+            timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating), // Обновление каждую секунду
+        })
+        .insert_resource(WinSize { w: WIN_X, h: WIN_Y })
+        .insert_resource(spatial_hash)
+        .add_plugins((InitialState, DefaultPlugins.set(winit(WIN_X, WIN_Y))))
+        .add_systems(Update, movable_system)
+        .run();
 }
