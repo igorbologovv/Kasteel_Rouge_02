@@ -1,15 +1,16 @@
 use crate::components::{AIComponent, Condition, Soldier, SpriteSize, Squad, Team};
-use crate::resources::{GameTextures, SpatialHash};
+use crate::resources::{GameTextures, SpatialHash, SquadVec};
 use crate::resources::WinSize;
 use bevy::prelude::*;
 use rand::Rng;
 pub struct InitialState;
-use crate::moving_logic::SpatialHashPlugin;
+use crate::update_sh_pos::SpatialHashPlugin;
 
 impl Plugin for InitialState {
     fn build(&self, app: &mut App) {
         app.add_systems(PreStartup, sprite_load_system)
-            .add_systems(Startup, spawn_squads)
+            .add_systems(Startup, (spawn_squads, setup_debug_timer))
+            //.add_systems(Update, print_all_entities)
             .add_plugins(SpatialHashPlugin);
     }
 }
@@ -31,7 +32,12 @@ fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
         game_textures.archer.clone()
     }
 }
-fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>, mut spatial_hash: ResMut<SpatialHash>) {
+fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>,
+     mut spatial_hash: ResMut<SpatialHash>,
+     mut squads: ResMut<SquadVec>,
+     query: Query<(&Team, &Squad, &Soldier, &Condition)>, // For debugivuging
+
+    ) {
     // Future parameterization: allow dynamic team/squad setup
     println!("SPAWN_SQUADS");
     commands.spawn(Camera2dBundle::default());
@@ -44,6 +50,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
         let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); // Team IDs start from 1
 
         for squad_id in 0..squad_count {
+            let mut squad =Vec::new();
             for _i in 0..squad_dimensions.0 {
                 for _j in 0..squad_dimensions.1 {
                     let p = define_position(
@@ -52,6 +59,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                         winsize.h,
                     );
                     let shcoords = spatial_hash.to_grid_coords(p);
+                    let entt =
                     commands
                         .spawn(SpriteBundle {
                             texture: texture_handle.clone(),
@@ -85,11 +93,19 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             is_dead: false,
                             is_wounded: false,
                         })
-                        .insert(AIComponent::default());
+                        .insert(AIComponent::default()).id();
+
+                        squad.push(entt);
                 }
+                
             }
+            squads.add_squad(squad);
         }
+
     }
+
+
+    
 }
 
 // Depending on the team number choosing a position range
@@ -108,5 +124,42 @@ fn define_position(squad_num: u8, w: f32, h: f32) -> Vec3 {
             rng.gen_range(0.0..h / 2.0),
             0.0,
         )
+    }
+}
+
+#[derive(Resource)]
+struct DebugTimer(Timer);
+
+fn setup_debug_timer(mut commands: Commands) {
+    commands.insert_resource(DebugTimer(Timer::from_seconds(0.1, TimerMode::Once)));
+}
+
+fn print_all_entities(
+    time: Res<Time>,
+    mut timer: ResMut<DebugTimer>,
+    squads: Res<SquadVec>,
+    query: Query<(&Team, &Squad, &Soldier, &Condition)>,
+) {
+    if timer.0.tick(time.delta()).finished() {
+        println!("----------------- DEBUG INFO -----------------");
+        for (squad_index, squad) in squads.get_squads().iter().enumerate() {
+            println!("Squad {}:", squad_index);
+            for &entt in squad {
+                if let Ok((team, squad, soldier, condition)) = query.get(entt) {
+                    println!(
+                        "  Entity ID: {:?} | Team: {} | Squad: {} | Position: {:?} | Health: {} | Stamina: {}",
+                        entt,
+                        team.0,
+                        squad.0,
+                        soldier.sh_coords,
+                        condition.strength,
+                        condition.stamina
+                    );
+                } else {
+                    println!("  Entity {:?} does not have all required components.", entt);
+                }
+            }
+        }
+        println!("----------------------------------------------");
     }
 }

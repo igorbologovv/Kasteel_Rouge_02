@@ -17,6 +17,7 @@ pub struct SpatialHash {
     pub cell_size: f32,
 }
 
+
 impl SpatialHash {
     pub fn new(xcells: usize, ycells: usize, cell_size: f32) -> Self {
         Self {
@@ -63,4 +64,16 @@ impl SpatialHash {
 pub struct WinSize {
     pub w: f32,
     pub h: f32,
+}
+
+#[derive(Resource)]pub struct SquadVec{
+    pub squad_vec: Vec<Vec<Entity>>
+}
+impl SquadVec {
+    pub fn add_squad(&mut self, squad: Vec<Entity>) {
+        self.squad_vec.push(squad);
+    }
+    pub fn get_squads(&self) -> &Vec<Vec<Entity>> {
+        &self.squad_vec
+    }
 }
