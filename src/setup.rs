@@ -140,26 +140,27 @@ fn print_all_entities(
     squads: Res<SquadVec>,
     query: Query<(&Team, &Squad, &Soldier, &Condition)>,
 ) {
-    if timer.0.tick(time.delta()).finished() {
-        println!("----------------- DEBUG INFO -----------------");
-        for (squad_index, squad) in squads.get_squads().iter().enumerate() {
-            println!("Squad {}:", squad_index);
-            for &entt in squad {
-                if let Ok((team, squad, soldier, condition)) = query.get(entt) {
-                    println!(
-                        "  Entity ID: {:?} | Team: {} | Squad: {} | Position: {:?} | Health: {} | Stamina: {}",
-                        entt,
-                        team.0,
-                        squad.0,
-                        soldier.sh_coords,
-                        condition.strength,
-                        condition.stamina
-                    );
-                } else {
-                    println!("  Entity {:?} does not have all required components.", entt);
-                }
+    println!("----------------- DEBUG INFO -----------------");
+    for (squad_index, squad) in squads.get_squads().iter().enumerate() {
+        let (entities, squad_id) = squad;  // Деструктуризация кортежа для получения вектора сущностей и идентификатора отряда
+        println!("Squad {} (ID: {}):", squad_index, squad_id);
+
+        for &entt in entities {
+            if let Ok((team, squad, soldier, condition)) = query.get(entt) {
+                println!(
+                    "  Entity ID: {:?} | Team: {} | Squad: {} | Position: {:?} | Health: {} | Stamina: {}",
+                    entt,
+                    team.0,
+                    squad.0,
+                    soldier.sh_coords,
+                    condition.strength,
+                    condition.stamina
+                );
+            } else {
+                println!("  Entity {:?} does not have all required components.", entt);
             }
         }
-        println!("----------------------------------------------");
     }
+    println!("----------------------------------------------");
 }
+
