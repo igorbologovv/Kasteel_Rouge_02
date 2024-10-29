@@ -1,3 +1,4 @@
+#![recursion_limit = "2048"]
 mod components;
 pub mod update_sh_pos;
 mod resources;
@@ -7,7 +8,6 @@ pub mod moving_system_ai;
 use crate::resources::WinSize;
 use crate::setup::InitialState;
 use crate::winit::winit;
-use crate::update_sh_pos::movable_system;
 use bevy::prelude::*;
 use resources::{SpatialHash, SquadVec};
 use std::time::Duration;

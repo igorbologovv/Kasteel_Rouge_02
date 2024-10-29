@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use cgmath::Vector3;
 use smallvec::SmallVec;
 
+use crate::components::Soldier;
+
 type SpatialHashCell = smallvec::SmallVec<[Entity; 6]>;
 
 #[derive(Resource)]
@@ -67,13 +69,13 @@ pub struct WinSize {
 }
 
 #[derive(Resource)]pub struct SquadVec{
-    pub squad_vec: Vec<Vec<Entity>>
+    pub squad_vec: Vec<(Vec<Entity>, u16)>
 }
 impl SquadVec {
-    pub fn add_squad(&mut self, squad: Vec<Entity>) {
+    pub fn add_squad(&mut self, squad: (Vec<Entity>,  u16)) {
         self.squad_vec.push(squad);
     }
-    pub fn get_squads(&self) -> &Vec<Vec<Entity>> {
+    pub fn get_squads(&self) -> &Vec<(Vec<Entity>, u16)> {
         &self.squad_vec
     }
 }

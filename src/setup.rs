@@ -99,7 +99,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                 }
                 
             }
-            squads.add_squad(squad);
+            squads.add_squad((squad, squad_id));
         }
 
     }
