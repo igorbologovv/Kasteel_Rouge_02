@@ -74,13 +74,13 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                         .insert(Team((team_id + 1) as u8)) // Store team ID as u8
                         .insert(Squad(squad_id))
                         .insert(Soldier {
-                            velocity: (0, 0, 0),
+                            velocity: (1, 0, 0),
                             squad_num: squad_id,
                             hit_chance: 50,
                             dodge_chance: 50,
                             sh_coords: shcoords,
-                            center_of_mass: Vector3::new(0.0, 0.0, 0.0),
-                            target_direction: Vector3::new(0.0, 0.0, 0.0)
+                            center_of_mass: Vec3::new(0.0, 0.0, 0.0),
+                            target_direction: Vec3::new(0.0, 0.0, 0.0)
                         })
                         .insert(SpriteSize {
                             height: 32,

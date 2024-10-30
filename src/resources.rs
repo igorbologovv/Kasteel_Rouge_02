@@ -6,6 +6,9 @@ use crate::components::Soldier;
 
 type SpatialHashCell = smallvec::SmallVec<[Entity; 6]>;
 
+#[derive(bevy::ecs::schedule::ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
+struct PrepareUpdate;
+
 #[derive(Resource)]
 pub struct GameTextures {
     pub swordman: Handle<Image>,
