@@ -2,6 +2,7 @@ use crate::components::{AIComponent, Condition, Soldier, SpriteSize, Squad, Team
 use crate::resources::{GameTextures, SpatialHash, SquadVec};
 use crate::resources::WinSize;
 use bevy::prelude::*;
+use cgmath::Vector3;
 use rand::Rng;
 pub struct InitialState;
 use crate::update_sh_pos::SpatialHashPlugin;
@@ -77,7 +78,9 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             squad_num: squad_id,
                             hit_chance: 50,
                             dodge_chance: 50,
-                            sh_coords: shcoords
+                            sh_coords: shcoords,
+                            center_of_mass: Vector3::new(0.0, 0.0, 0.0),
+                            target_direction: Vector3::new(0.0, 0.0, 0.0)
                         })
                         .insert(SpriteSize {
                             height: 32,

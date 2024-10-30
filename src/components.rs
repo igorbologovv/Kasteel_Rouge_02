@@ -8,16 +8,21 @@ pub struct Soldier {
     pub dodge_chance: i8,
     pub velocity: (i8, i8, i8),
     pub squad_num: u16,
-    pub sh_coords: Vector3<u32>
+    pub sh_coords: Vector3<u32>,
+    pub center_of_mass: Vector3<f32>,
+    pub target_direction: Vector3<f32>
 }
 impl Soldier {
-    pub fn new(vx: i8, vy: i8, vz: i8, squad_num: u16, sh_coords:  Vector3<u32>) -> Self {
+    pub fn new(vx: i8, vy: i8, vz: i8, squad_num: u16, sh_coords:  Vector3<u32>, cm: Vector3<f32>, td:Vector3<f32> ) -> Self {
         Soldier {
             velocity: (vx, vy, vz),
             squad_num: squad_num,
             hit_chance: 50,
             dodge_chance: 50,
-            sh_coords:sh_coords
+            sh_coords:sh_coords,
+            center_of_mass: cm,
+            target_direction: td
+
         }
     }
 }
