@@ -1,5 +1,6 @@
-use crate::components::{Condition, Soldier, SpriteSize, Team};
+use crate::components::{Condition, Soldier, SpriteSize, Team, AIComponent};
 use crate::resources::{SpatialHash, SquadVec, TargetSquads, WinSize};
+use crate::moving_system_ai::{update_directions_system,define_direction_to_enemy_cmass };
 use bevy::ecs::query;
 use bevy::prelude::*;
 use cgmath::Vector3;
@@ -8,13 +9,15 @@ use rand::Rng;
 struct PrepareUpdate;
 pub struct SpatialHashPlugin;
 
+
 impl Plugin for SpatialHashPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TargetSquads {
             cmass_id: Vec::new(),
         }) 
             .add_systems(PostStartup, initialize_spatial_hash) // Run at startup to populate the spatial hash
-            .add_systems(Update, update_center_of_mass.before(movable_system)) // Сначала обновляем центр масс
+            .add_systems(Update, update_center_of_mass.before(movable_system))
+            .add_systems(Update, update_directions_system.after(update_center_of_mass))
             .add_systems(Update,movable_system); // Затем перемещаем солдат
     }
 }
@@ -47,18 +50,19 @@ If position was chaned in sh then add it to update buffer
 */
 pub fn movable_system(
     mut spatial_hash: ResMut<crate::SpatialHash>,
-    mut soldier_query: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
+    mut soldier_query: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team, &AIComponent)>,
     cmass_id: Res<TargetSquads>
 ) {
+    
     let mut rng = rand::thread_rng();
     let mut update_buffer: Vec<(Entity, Vec3, Vec3)> = Vec::new();
     // for (center_of_mass, squad_id) in &cmass_id.cmass_id {
     //    // println!("Squad ID: {}, Center of Mass: ({}, {}, {})", squad_id, center_of_mass.x, center_of_mass.y, center_of_mass.z);
     // }
     // Moving soldier and adding to update buffer if needed
-    for (soldier_entity, mut transform, _sprite_size, mut soldier, team) in soldier_query.iter_mut() {
+    for (soldier_entity, mut transform, _sprite_size, mut soldier, team, ai) in soldier_query.iter_mut() {
         let old_position = transform.translation;
-
+        println!("Friends for Soldier{}: {}{}{}{}{}{}{}{}", soldier_entity,ai.allies_directions[0],ai.allies_directions[1],ai.allies_directions[2],ai.allies_directions[3],ai.allies_directions[4],ai.allies_directions[5],ai.allies_directions[6],ai.allies_directions[7], );
         // Generate random direction
         let random_direction = Vec3::new(
             rng.gen_range(-1.0..=1.0),

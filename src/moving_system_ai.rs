@@ -4,10 +4,14 @@ use bevy::ecs::query;
 use bevy::prelude::*;
 use cgmath::Vector3;
 use rand::Rng;
+/*
+In this file we are collecting data for AIcomponent of each soldier
+Particularly the direction to a friend or enemy,
+For more efficiency the update happens in one cycle for everyone who was found around the target. 
+ */
 
 
-
-fn define_direction_to_enemy(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
+pub fn define_direction_to_enemy_cmass(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
     // Массив направлений: N, NE, E, SE, S, SW, W, NW
     let mut result_dir = [0u8; 8];
     let dx = dir.x - my_pos.x;
@@ -84,28 +88,29 @@ fn define_direction_to_enemy(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
     result_dir
 }
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-
-fn update_directions_system(
+pub fn update_directions_system(
     mut spatial_hash: ResMut<SpatialHash>,
     mut query: Query<(Entity, &Team, &Transform, &mut AIComponent)>,
 ) {
-    // Создаем копию списка сущностей
+    // Copy of query Entities to avoid borrow checker shit
     let entities: Vec<(Entity, Team, Transform)> = query
         .iter()
         .map(|(e, t, tr, _)| (e, *t, tr.clone()))
         .collect();
 
-    // HashMap для хранения обновлений AIComponent других сущностей
-    // Ключ: Entity, Значение: (Vec<usize>, Vec<usize>)
-    // Первой в кортеже идет информация о союзниках, второй — о врагах
-    let mut other_updates: HashMap<Entity, (Vec<usize>, Vec<usize>)> = HashMap::new();
+    // This is the future option if we want to update my position for other entities
+    // but now it works with bugs I am lazy to fix it
+    //let mut other_updates: HashMap<Entity, (HashSet<usize>, HashSet<usize>)> = HashMap::new();
 
     for (my_entity, my_team, my_transform, mut my_ai_component) in query.iter_mut() {
         // Инициализируем массивы направлений нулями
         my_ai_component.allies_directions = [0u8; 8];
         my_ai_component.enemies_directions = [0u8; 8];
+
+        // Создаем HashSet для отслеживания обработанных сущностей
+        let mut processed_entities: HashSet<Entity> = HashSet::new();
 
         // Определяем область поиска вокруг солдата
         let search_radius = spatial_hash.cell_size * 2.5;
@@ -122,51 +127,60 @@ fn update_directions_system(
 
                 // Получаем индекс ячейки
                 if let Some(index) = spatial_hash.sh.pos_to_index(cell_coords) {
-                    // Получаем сущности в ячейке
+                    // ================== LOGICAL BLOCK====================
+                    //While iterating around my_entity we check each cell, since cell can contain several entities 
+                    //we have to iterate thought SmallVec inside the cell.
                     if let Some(cell_entities) = spatial_hash.sh.get(index) {
                         for &other_entity in cell_entities {
                             if other_entity == my_entity {
-                                continue; // Пропускаем самого себя
+                                continue; // We found ourself here skip processing
                             }
 
-                            // Получаем данные о сущности из списка
+                            // HashSet checks if it contains the entity if yes then we skip processing
+                            if !processed_entities.insert(other_entity) {
+                                continue; 
+                            }
+
+                            // If other entity in cell found in entities(vector of our query copy)
                             if let Some((_, other_team, other_transform)) =
                                 entities.iter().find(|(e, _, _)| *e == other_entity)
                             {
+                                //define the direction (SNWE of between)
                                 let direction_to_other = define_direction_to_entity(
                                     other_transform.translation,
                                     my_transform.translation,
                                 );
-
+                                // If not the same position as my entity
                                 if direction_to_other != 255 {
                                     let direction_to_other_usize = direction_to_other as usize;
-
+                                    //Get direction from other entity to me
                                     let direction_to_me = define_direction_to_entity(
                                         my_transform.translation,
                                         other_transform.translation,
                                     );
-                                    let direction_to_me_usize = direction_to_me as usize;
+                                    let direction_to_me_usize = direction_to_me as usize;//cast to usize
 
+                                    // Check if it is a friend
                                     if other_team.0 == my_team.0 {
-                                        // Это союзник
+                                        
                                         my_ai_component.allies_directions[direction_to_other_usize] += 1;
 
-                                        // Сохраняем обновление для союзника
-                                        other_updates
-                                            .entry(other_entity)
-                                            .or_insert_with(|| (Vec::new(), Vec::new()))
-                                            .0 // Вектор союзников
-                                            .push(direction_to_me_usize);
+                                        // Update enemy pos for me
+                                        // other_updates
+                                        //     .entry(other_entity)
+                                        //     .or_insert_with(|| (HashSet::new(), HashSet::new()))
+                                        //     .0 // HashSet союзников
+                                        //     .insert(direction_to_me_usize);
                                     } else {
                                         // Это враг
                                         my_ai_component.enemies_directions[direction_to_other_usize] += 1;
 
-                                        // Сохраняем обновление для врага
-                                        other_updates
-                                            .entry(other_entity)
-                                            .or_insert_with(|| (Vec::new(), Vec::new()))
-                                            .1 // Вектор врагов
-                                            .push(direction_to_me_usize);
+                                        // Update my pos for enemy
+                                        // other_updates
+                                        //     .entry(other_entity)
+                                        //     .or_insert_with(|| (HashSet::new(), HashSet::new()))
+                                        //     .1 // HashSet врагов
+                                        //     .insert(direction_to_me_usize);
                                     }
                                 }
                             }
@@ -177,24 +191,23 @@ fn update_directions_system(
         }
     }
 
-    // Применяем сохраненные обновления к AIComponent других сущностей
-    for (entity, (ally_dirs, enemy_dirs)) in other_updates {
-        if let Ok((_, _, _, mut ai_component)) = query.get_mut(entity) {
-            // Обновляем направления союзников
-            for dir in ally_dirs {
-                ai_component.allies_directions[dir] += 1;
-            }
-            // Обновляем направления врагов
-            for dir in enemy_dirs {
-                ai_component.enemies_directions[dir] += 1;
-            }
-        }
-    }
+    // // Применяем сохраненные обновления к AIComponent других сущностей
+    // for (entity, (ally_dirs, enemy_dirs)) in other_updates {
+    //     if let Ok((_, _, _, mut ai_component)) = query.get_mut(entity) {
+    //         // Обновляем направления союзников
+    //         for dir in ally_dirs {
+    //             ai_component.allies_directions[dir] += 1;
+    //         }
+    //         // Обновляем направления врагов
+    //         for dir in enemy_dirs {
+    //             ai_component.enemies_directions[dir] += 1;
+    //         }
+    //     }
+    // }
 }
 
-
 fn define_direction_to_entity(target_pos: Vec3, my_pos: Vec3) -> u8 {
-    let dx = target_pos.x - my_pos.x;
+    let dx: f32 = target_pos.x - my_pos.x;
     let dy = target_pos.y - my_pos.y;
 
     if dx == 0.0 && dy == 0.0 {

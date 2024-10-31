@@ -96,7 +96,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             is_dead: false,
                             is_wounded: false,
                         })
-                        .insert(AIComponent::default()).id();
+                        .insert(AIComponent::new()).id();
 
                         squad.push(entt);
                 }
