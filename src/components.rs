@@ -4,10 +4,19 @@ use cgmath::Vector3;
 pub struct Soldier {
     pub is_active: bool,
     pub is_moving: bool,
-    pub pos: bevy::prelude::Vec3,
     pub velocity: (i8, i8, i8),
+    pub squad_num: u16,
 }
-
+impl Soldier {
+    pub fn new(_pos: Vec3, vx: i8, vy: i8, vz: i8, squad_num: u16) -> Self {
+        Soldier {
+            is_active: false,
+            is_moving: false,
+            velocity: (vx, vy, vz),
+            squad_num: squad_num,
+        }
+    }
+}
 #[derive(Component)]
 pub struct SharedMemory {
     pub alies: [bool; 8],
@@ -39,17 +48,6 @@ pub struct Condition {
     pub danger_perception: i8,
 }
 
-impl Soldier {
-    pub fn new(_pos: Vec3, vx: i8, vy: i8, vz: i8) -> Self {
-        Soldier {
-            is_active: false,
-            is_moving: false,
-            pos: _pos,
-            velocity: (vx, vy, vz),
-        }
-    }
-}
-
 #[derive(Component)]
 pub struct Team(pub u8);
 
@@ -77,35 +75,4 @@ pub enum SquadOrder {
 }
 
 #[derive(Component, Debug)]
-pub struct Squad {
-    pub unit: UnitType,
-    pub size: (u8, u8),
-    pub current_order: SquadOrder,
-    pub belong_to_id: Option<PlayerId>,
-    pub id: u8,
-}
-
-impl Squad {
-    fn new(
-        unit: UnitType,
-        size: (u8, u8),
-        current_order: SquadOrder,
-        belong_to_id: Option<PlayerId>,
-        id: u8,
-    ) -> Self {
-        Self {
-            unit,
-            size,
-            current_order,
-            belong_to_id,
-            id,
-        }
-    }
-    fn get_order(&mut self) -> SquadOrder {
-        self.current_order
-    }
-
-    fn set_order(&mut self, order: SquadOrder) {
-        self.current_order = order;
-    }
-}
+pub struct Squad(pub u16);

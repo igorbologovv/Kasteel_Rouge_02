@@ -1,6 +1,6 @@
-use crate::components::{Condition, Soldier, Team, SpriteSize};
-use crate::resources::GameTextures;
+use crate::components::{Condition, Soldier, SpriteSize, Squad, SquadOrder, Team};
 use crate::resources::WinSize;
+use crate::resources::{GameTextures, Squads};
 use bevy::prelude::*;
 
 use cgmath::Vector3;
@@ -10,11 +10,12 @@ pub struct InitialState;
 impl Plugin for InitialState {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, sprite_load_system)
-            .add_systems(PostStartup, spawn_units);
+            .add_systems(PostStartup, spawn_squads);
     }
 }
 
 pub fn sprite_load_system(mut commands: Commands, asset_server: Res<AssetServer>) {
+    print!("Loading textures...");
     let game_textures = GameTextures {
         swordman: asset_server.load("../assets/swordsman.png"),
         archer: asset_server.load("../assets/archer.png"),
@@ -23,65 +24,68 @@ pub fn sprite_load_system(mut commands: Commands, asset_server: Res<AssetServer>
     commands.insert_resource(game_textures);
 }
 
-fn spawn_units(mut commands: Commands, game_textures: Res<GameTextures>, win_size: Res<WinSize>) {
-    //commands.spawn(Camera2dBundle::default());
-
-    let squad_size = 15;
-    let mut rng = rand::thread_rng();
-
+fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
+    if id == 1 {
+        game_textures.swordman.clone()
+    } else {
+        game_textures.archer.clone()
+    }
+}
+fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>) {
+    //TODO in the future this function will get such params as the amount of players etc
+    // For now the team belonging is hardcoded
+    print!("SPAWN_SQUADS");
     commands.spawn(Camera2dBundle::default());
 
-    // Спавним первую команду (нижний левый угол)
-    for _ in 0..squad_size {
-        let (x, y) = (
-            rng.gen_range(-win_size.w / 2.0..0.0),
-            rng.gen_range(-win_size.h / 2.0..0.0),
-        );
-        commands
-            .spawn(SpriteBundle {
-                texture: game_textures.swordman.clone(),
-                transform: Transform {
-                    translation: Vec3::new(x, y, 0.),
-                    scale: Vec3::new(1., 1., 1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(Soldier::new(Vec3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
-            .insert(Team(0))
-            .insert(SpriteSize { height: 32, width:32 })
-            .insert(Condition {
-                morale: 0,
-                stamina: 0,
-                strength: 0,
-                danger_perception: 0,
-            }); // Команда 0 для первой группы
-    }
+    // this locig is hardcoded now. Each team has certain amount of squads, so we need to know which squad belongs to each team
+    //the first parameter of squad in team_squads is the players ID second is the amount of squads he has.
+    let teams_squads = vec![(1, 2), (2, 3)];
 
-    // Спавним вторую команду (верхний правый угол)
-    for _ in 0..squad_size {
-        let (x, y) = (
-            rng.gen_range(0.0..win_size.w / 2.0),
-            rng.gen_range(0.0..win_size.h / 2.0),
-        );
-        commands
-            .spawn(SpriteBundle {
-                texture: game_textures.archer.clone(),
-                transform: Transform {
-                    translation: Vec3::new(x, y, 0.),
-                    scale: Vec3::new(1.0, 1., 1.),
+    for team in teams_squads {
+        //here we choose which sprite wwould be spawned
+
+        for squad_id in 0..team.1 {
+            commands
+                .spawn(SpriteBundle {
+                    texture: choose_sprite(team.0, &game_textures),
+                    transform: Transform {
+                        translation: define_position(team.0, winsize.w, winsize.h),
+                        scale: Vec3::new(1., 1., 1.),
+                        ..Default::default()
+                    },
                     ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(Soldier::new(Vec3::new(x, y, 0.), 1, 1, 0)) // Здесь создаем солдата с координатами
-            .insert(Team(1))
-            .insert(SpriteSize { height: 32, width:32 })
-            .insert(Condition {
-                morale: 0,
-                stamina: 0,
-                strength: 0,
-                danger_perception: 0,
-            }); // Команда 1 для второй группы
+                })
+                .insert(Team(team.0))
+                .insert(Squad(squad_id))
+                .insert(SpriteSize {
+                    height: 32,
+                    width: 32,
+                })
+                .insert(Condition {
+                    morale: 0,
+                    stamina: 0,
+                    strength: 0,
+                    danger_perception: 0,
+                });
+        }
+    }
+}
+
+// Depending on the team number choosing a position range
+fn define_position(squad_num: u8, w: f32, h: f32) -> Vec3 {
+    let mut rng = rand::thread_rng();
+    // the id is hardcoded
+    if squad_num == 1 {
+        Vec3::new(
+            rng.gen_range(-w / 2.0..0.0),
+            rng.gen_range(-h / 2.0..0.0),
+            0.0,
+        )
+    } else {
+        Vec3::new(
+            rng.gen_range(0.0..w / 2.0),
+            rng.gen_range(0.0..h / 2.0),
+            0.0,
+        )
     }
 }

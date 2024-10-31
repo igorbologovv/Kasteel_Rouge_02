@@ -51,6 +51,5 @@ fn main() {
         .insert_resource(WinSize { w: WIN_X, h: WIN_Y })
         .insert_resource(spatial_hash)
         .add_plugins((InitialState, DefaultPlugins.set(winit(WIN_X, WIN_Y))))
-        .add_systems(Update, movable_system)
         .run();
 }
