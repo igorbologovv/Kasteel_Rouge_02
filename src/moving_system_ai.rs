@@ -87,22 +87,25 @@ fn define_direction_to_enemy(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
 use std::collections::HashMap;
 
 
-fn update_allies_directions_system(
-    mut spatial_hash: ResMut<SpatialHash>, // Добавлено `mut` перед `spatial_hash`
+fn update_directions_system(
+    mut spatial_hash: ResMut<SpatialHash>,
     mut query: Query<(Entity, &Team, &Transform, &mut AIComponent)>,
 ) {
-    // Создаем копию списка сущностей для избежания конфликтов при мутации
+    // Создаем копию списка сущностей
     let entities: Vec<(Entity, Team, Transform)> = query
         .iter()
         .map(|(e, t, tr, _)| (e, *t, tr.clone()))
         .collect();
 
-    // HashMap для хранения обновлений других AIComponent
-    let mut other_updates: HashMap<Entity, Vec<usize>> = HashMap::new();
+    // HashMap для хранения обновлений AIComponent других сущностей
+    // Ключ: Entity, Значение: (Vec<usize>, Vec<usize>)
+    // Первой в кортеже идет информация о союзниках, второй — о врагах
+    let mut other_updates: HashMap<Entity, (Vec<usize>, Vec<usize>)> = HashMap::new();
 
     for (my_entity, my_team, my_transform, mut my_ai_component) in query.iter_mut() {
-        // Инициализируем массив направлений нулями
+        // Инициализируем массивы направлений нулями
         my_ai_component.allies_directions = [0u8; 8];
+        my_ai_component.enemies_directions = [0u8; 8];
 
         // Определяем область поиска вокруг солдата
         let search_radius = spatial_hash.cell_size * 2.5;
@@ -119,7 +122,7 @@ fn update_allies_directions_system(
 
                 // Получаем индекс ячейки
                 if let Some(index) = spatial_hash.sh.pos_to_index(cell_coords) {
-                    // Получаем ссылку на ячейку
+                    // Получаем сущности в ячейке
                     if let Some(cell_entities) = spatial_hash.sh.get(index) {
                         for &other_entity in cell_entities {
                             if other_entity == my_entity {
@@ -130,27 +133,40 @@ fn update_allies_directions_system(
                             if let Some((_, other_team, other_transform)) =
                                 entities.iter().find(|(e, _, _)| *e == other_entity)
                             {
-                                if other_team.0 == my_team.0 {
-                                    // Это союзник
-                                    let direction_to_ally = define_direction_to_entity(
-                                        other_transform.translation,
-                                        my_transform.translation,
-                                    );
-                                    if direction_to_ally != 255 {
-                                        my_ai_component.allies_directions
-                                            [direction_to_ally as usize] = 1;
-                                    }
+                                let direction_to_other = define_direction_to_entity(
+                                    other_transform.translation,
+                                    my_transform.translation,
+                                );
 
-                                    // Сохраняем обновление для other_ai_component
+                                if direction_to_other != 255 {
+                                    let direction_to_other_usize = direction_to_other as usize;
+
                                     let direction_to_me = define_direction_to_entity(
                                         my_transform.translation,
                                         other_transform.translation,
                                     );
-                                    if direction_to_me != 255 {
+                                    let direction_to_me_usize = direction_to_me as usize;
+
+                                    if other_team.0 == my_team.0 {
+                                        // Это союзник
+                                        my_ai_component.allies_directions[direction_to_other_usize] += 1;
+
+                                        // Сохраняем обновление для союзника
                                         other_updates
                                             .entry(other_entity)
-                                            .or_insert_with(Vec::new)
-                                            .push(direction_to_me as usize);
+                                            .or_insert_with(|| (Vec::new(), Vec::new()))
+                                            .0 // Вектор союзников
+                                            .push(direction_to_me_usize);
+                                    } else {
+                                        // Это враг
+                                        my_ai_component.enemies_directions[direction_to_other_usize] += 1;
+
+                                        // Сохраняем обновление для врага
+                                        other_updates
+                                            .entry(other_entity)
+                                            .or_insert_with(|| (Vec::new(), Vec::new()))
+                                            .1 // Вектор врагов
+                                            .push(direction_to_me_usize);
                                     }
                                 }
                             }
@@ -161,11 +177,16 @@ fn update_allies_directions_system(
         }
     }
 
-    // Применяем сохраненные обновления к other_ai_component
-    for (entity, directions) in other_updates {
+    // Применяем сохраненные обновления к AIComponent других сущностей
+    for (entity, (ally_dirs, enemy_dirs)) in other_updates {
         if let Ok((_, _, _, mut ai_component)) = query.get_mut(entity) {
-            for dir in directions {
-                ai_component.allies_directions[dir] = 1;
+            // Обновляем направления союзников
+            for dir in ally_dirs {
+                ai_component.allies_directions[dir] += 1;
+            }
+            // Обновляем направления врагов
+            for dir in enemy_dirs {
+                ai_component.enemies_directions[dir] += 1;
             }
         }
     }
