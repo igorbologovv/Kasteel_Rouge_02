@@ -1,4 +1,3 @@
-use crate::components::{Condition, Soldier};
 use crate::components::{Condition, Soldier, SpriteSize, Team};
 use crate::resources::{SpatialHash, WinSize};
 use bevy::prelude::*;
@@ -9,10 +8,10 @@ use cgmath::Vector3;
 // This should be the very first call to fill the spatial hash with initial positions of soldiers
 pub fn initialize_spatial_hash(
     mut spatial_hash: ResMut<SpatialHash>,
-    soldier_query: Query<(Entity, &Soldier)>,
+    soldier_query: Query<(Entity, &Soldier, &Transform)>,
 ) {
-    for (soldier_entity, soldier_component) in soldier_query.iter() {
-        let initial_position = soldier_component.pos;
+    for (soldier_entity, soldier_component, pos) in soldier_query.iter() {
+        let initial_position = pos.translation;
         push_entity_to_sh(&mut spatial_hash, soldier_entity, initial_position);
     }
 }
@@ -44,10 +43,8 @@ fn push_entity_to_sh(spatial_hash: &mut SpatialHash, entt: Entity, pos: Vec3) {
 pub fn movable_system(
     mut commands: Commands,
     win_size: Res<WinSize>,
-    mut query: Query<(Entity, &mut Transform, &mut Condition)>,
     mut spatial_hash: ResMut<crate::SpatialHash>,
     mut soldier: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
-    mut spatial_hash: ResMut<SpatialHash>,
 ) {
     let min = Vector3 { x: 0, y: 0, z: 0 };
     let max = Vector3 {
@@ -61,7 +58,7 @@ pub fn movable_system(
         for (soldier_entity, mut transform, sprite_size, mut soldier_component, team) in
             soldier.iter_mut()
         {
-            let old_position = soldier_component.pos;
+            let old_position = transform.translation;
 
             //TODO MOVE LOGIC HERE IS A MOVE LOGIC AND ASSIGN NEW VALUES TO POS
             // soldier_comppnent.pos.x+=1;
@@ -69,12 +66,12 @@ pub fn movable_system(
             //etc.....
 
             let new_position = old_position + Vec3::new(1.0, 1.0, 0.0);
-            soldier_component.pos = new_position;
+            transform.translation = new_position;
             update_entity_in_sh(
                 spatial_hash,
                 soldier_entity,
                 old_position,
-                soldier_component.pos,
+                transform.translation,
             );
         }
     }

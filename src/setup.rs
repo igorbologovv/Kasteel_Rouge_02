@@ -1,6 +1,6 @@
 use crate::components::{Condition, Soldier, SpriteSize, Squad, SquadOrder, Team};
+use crate::resources::GameTextures;
 use crate::resources::WinSize;
-use crate::resources::{GameTextures, Squads};
 use bevy::prelude::*;
 
 use cgmath::Vector3;
@@ -32,41 +32,48 @@ fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
     }
 }
 fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>) {
-    //TODO in the future this function will get such params as the amount of players etc
-    // For now the team belonging is hardcoded
-    print!("SPAWN_SQUADS");
+    // Future parameterization: allow dynamic team/squad setup
+    println!("SPAWN_SQUADS");
     commands.spawn(Camera2dBundle::default());
 
-    // this locig is hardcoded now. Each team has certain amount of squads, so we need to know which squad belongs to each team
-    //the first parameter of squad in team_squads is the players ID second is the amount of squads he has.
-    let teams_squads = vec![(1, 2), (2, 3)];
+    // Hardcoded example: Each team has a specified number of squads
+    let teams_squads = vec![2, 3]; // Number of squads for each team
+    let squad_dimensions = (2, 2);
 
-    for team in teams_squads {
-        //here we choose which sprite wwould be spawned
+    for (team_id, &squad_count) in teams_squads.iter().enumerate() {
+        let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); // Team IDs start from 1
 
-        for squad_id in 0..team.1 {
-            commands
-                .spawn(SpriteBundle {
-                    texture: choose_sprite(team.0, &game_textures),
-                    transform: Transform {
-                        translation: define_position(team.0, winsize.w, winsize.h),
-                        scale: Vec3::new(1., 1., 1.),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(Team(team.0))
-                .insert(Squad(squad_id))
-                .insert(SpriteSize {
-                    height: 32,
-                    width: 32,
-                })
-                .insert(Condition {
-                    morale: 0,
-                    stamina: 0,
-                    strength: 0,
-                    danger_perception: 0,
-                });
+        for squad_id in 0..squad_count {
+            for _i in 0..squad_dimensions.0 {
+                for _j in 0..squad_dimensions.1 {
+                    commands
+                        .spawn(SpriteBundle {
+                            texture: texture_handle.clone(),
+                            transform: Transform {
+                                translation: define_position(
+                                    team_id as u8 + 1,
+                                    winsize.w,
+                                    winsize.h,
+                                ),
+                                scale: Vec3::splat(1.0),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        })
+                        .insert(Team((team_id + 1) as u8)) // Store team ID as u8
+                        .insert(Squad(squad_id))
+                        .insert(SpriteSize {
+                            height: 32,
+                            width: 32,
+                        })
+                        .insert(Condition {
+                            morale: 0,
+                            stamina: 0,
+                            strength: 0,
+                            danger_perception: 0,
+                        });
+                }
+            }
         }
     }
 }
