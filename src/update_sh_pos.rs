@@ -108,7 +108,7 @@ pub fn movable_system(
         }
     }
 
-    // Применяем все изменения к spatial hash
+    // apply changes to sh
     update_entity_in_sh(&mut spatial_hash, update_buffer);
 }
 fn update_center_of_mass(

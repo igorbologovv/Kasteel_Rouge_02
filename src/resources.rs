@@ -62,6 +62,8 @@ impl SpatialHash {
         // Удаление объекта из ячейки
         cellref.retain(|e| *e != entt);
     }
+
+
 }
 
 #[derive(Resource)]
