@@ -6,8 +6,7 @@ use crate::components::Soldier;
 
 type SpatialHashCell = smallvec::SmallVec<[Entity; 6]>;
 
-#[derive(bevy::ecs::schedule::ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-struct PrepareUpdate;
+
 
 #[derive(Resource)]
 pub struct GameTextures {
@@ -49,7 +48,7 @@ impl SpatialHash {
         let index = self.pos_to_index(t).expect("Position out of bounds");
         let cellref = self.get_mut(index).expect("Index out of bounds");
 
-        println!("Adding entity to spatial hash at index {} with coordinates: {:?}", index, t);
+       // println!("Adding entity to spatial hash at index {} with coordinates: {:?}", index, t);
         cellref.push(entt);
     }
 
@@ -81,4 +80,8 @@ impl SquadVec {
     pub fn get_squads(&self) -> &Vec<(Vec<Entity>, u16)> {
         &self.squad_vec
     }
+}
+
+#[derive(Resource)]pub struct TargetSquads{
+    pub cmass_id: Vec<(Vec3, u16)>
 }

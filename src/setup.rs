@@ -46,9 +46,9 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
     // Hardcoded example: Each team has a specified number of squads and each element is a team and value is the amount of squads
     let teams_squads = vec![1, 1];
     let squad_dimensions = (2, 2);
-
+    let mut global_squad_id = 0;     
     for (team_id, &squad_count) in teams_squads.iter().enumerate() {
-        let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); // Team IDs start from 1
+        let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); 
 
         for squad_id in 0..squad_count {
             let mut squad =Vec::new();
@@ -72,10 +72,10 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             ..Default::default()
                         })
                         .insert(Team((team_id + 1) as u8)) // Store team ID as u8
-                        .insert(Squad(squad_id))
+                        .insert(Squad(global_squad_id))
                         .insert(Soldier {
                             velocity: (1, 0, 0),
-                            squad_num: squad_id,
+                            squad_num: global_squad_id,
                             hit_chance: 50,
                             dodge_chance: 50,
                             sh_coords: shcoords,
@@ -102,7 +102,9 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                 }
                 
             }
-            squads.add_squad((squad, squad_id));
+            println!("squad id: {}", global_squad_id);
+            squads.add_squad((squad, global_squad_id));
+            global_squad_id += 1;
         }
 
     }
