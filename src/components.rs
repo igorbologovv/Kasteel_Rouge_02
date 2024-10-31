@@ -61,7 +61,7 @@ pub struct Condition {
     pub danger_perception: i8,
 }
 
-#[derive(Component)]
+#[derive(Component, Copy, Clone)]
 pub struct Team(pub u8);
 
 #[derive(Component, Debug)]
@@ -90,25 +90,21 @@ pub enum SquadOrder {
 #[derive(Component, Debug)]
 pub struct Squad(pub u16);
 
-#[derive(Component, Debug)]
+#[derive(Component)]
 pub struct AIComponent {
-    pub situation_near: [i8; 8],
-    pub situation_far: [i8; 8],
+    pub allies_directions: [u8; 8],   // Массив направлений союзников
+    pub enemies_directions: [u8; 8],  // Массив направлений врагов
+    // Добавьте дополнительные поля, если необходимо
 }
 
 impl AIComponent {
-    fn new(snear: [i8; 8], sfar: [i8; 8]) -> AIComponent {
+    pub fn new() -> Self {
         AIComponent {
-            situation_near: snear,
-            situation_far: sfar,
+            allies_directions: [0u8; 8],
+            enemies_directions: [0u8; 8],
+            // Инициализируйте дополнительные поля
         }
     }
-}
-impl Default for AIComponent {
-    fn default() -> Self {
-        AIComponent {
-            situation_near: [0, 0, 0, 0, 0, 0, 0, 0],
-            situation_far: [0, 0, 0, 0, 0, 0, 0, 0],
-        }
-    }
+
+    // Добавьте методы для работы с компонентом, если необходимо
 }
