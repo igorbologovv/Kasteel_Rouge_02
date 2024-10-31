@@ -3,6 +3,15 @@ use crate::resources::{SpatialHash, WinSize};
 use bevy::prelude::*;
 use cgmath::Vector3;
 
+pub struct SpatialHashPlugin;
+
+impl Plugin for SpatialHashPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(PostStartup, initialize_spatial_hash) // Run at startup to populate the spatial hash
+            .add_systems(Update, movable_system); // Update soldier positions each frame
+    }
+}
+
 // TODO Use spatial hash to understand relative position of the soldier.
 //TODO
 // This should be the very first call to fill the spatial hash with initial positions of soldiers
@@ -40,8 +49,8 @@ fn push_entity_to_sh(spatial_hash: &mut SpatialHash, entt: Entity, pos: Vec3) {
     let cellref = spatial_hash.get_mut(index).expect("Index out of bounds");
     cellref.push(entt); // Direct addition, without checking
 }
+
 pub fn movable_system(
-    mut commands: Commands,
     win_size: Res<WinSize>,
     mut spatial_hash: ResMut<crate::SpatialHash>,
     mut soldier: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team)>,
@@ -67,7 +76,7 @@ pub fn movable_system(
             //pos.y +=1;
             //etc.....
 
-            let new_position = old_position + Vec3::new(1.0, 1.0, 0.0);
+            let new_position = old_position + Vec3::new(0.0, 0.0, 0.0);
             transform.translation = new_position;
             update_entity_in_sh(
                 spatial_hash,

@@ -3,7 +3,7 @@ pub mod moving_logic;
 mod resources;
 mod setup;
 pub mod winit;
-use crate::moving_logic::movable_system;
+use crate::moving_logic::{initialize_spatial_hash, movable_system, SpatialHashPlugin};
 use crate::resources::WinSize;
 use crate::setup::InitialState;
 use crate::winit::winit;
@@ -51,5 +51,6 @@ fn main() {
         .insert_resource(WinSize { w: WIN_X, h: WIN_Y })
         .insert_resource(spatial_hash)
         .add_plugins((InitialState, DefaultPlugins.set(winit(WIN_X, WIN_Y))))
+        .add_plugins(SpatialHashPlugin)
         .run();
 }
