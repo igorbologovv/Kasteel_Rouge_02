@@ -36,7 +36,7 @@ impl Default for GameConstants {
             squad_size: 10,
             round_duration: Duration::from_secs(10),
             map_size: 4000.0,
-            spatial_hash_cell_size: 100.0,
+            spatial_hash_cell_size: 20.0,
         }
     }
 }

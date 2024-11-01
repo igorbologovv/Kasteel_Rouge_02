@@ -24,11 +24,16 @@ impl SpatialHash {
             cell_size,
         }
     }
-
+    // It is importatnt to cast to i32 and not u32 (position[0] / self.cell_size).floor() because negative numbers
     pub fn to_grid_coords(&self, position: Vec3) -> Vector3<u32> {
-        let sz = self.sh.size();
-        let x = (position[0] / self.cell_size) as u32 + sz[0] as u32 / 2;
-        let y = (position[1] / self.cell_size) as u32 + sz[1] as u32 / 2;
+        let sz: Vector3<usize> = self.sh.size();
+        let x = (position[0] / self.cell_size).floor() as i32 + (sz[0] as i32 / 2);
+        let y = (position[1] / self.cell_size).floor() as i32 + (sz[1] as i32 / 2);
+
+        // Обеспечить, чтобы индексы не выходили за пределы
+        let x = x.max(0) as u32;
+        let y = y.max(0) as u32;
+
         Vector3 { x, y, z: 0 }
     }
 }

@@ -38,10 +38,10 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
 
     // Hardcoded example: Each team has a specified number of squads and each element is a team and value is the amount of squads
     let teams_squads = vec![1];
-    let squad_dimensions = (1, 1);
+    let squad_dimensions = (2, 2);
 
     for (team_id, &squad_count) in teams_squads.iter().enumerate() {
-        let texture_handle = choose_sprite((team_id) as u8, &game_textures); // Team IDs start from 1
+        let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); // Team IDs start from 1
 
         for squad_id in 0..squad_count {
             for _i in 0..squad_dimensions.0 {
@@ -93,7 +93,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
 fn define_position(squad_num: u8, w: f32, h: f32) -> Vec3 {
     let mut rng = rand::thread_rng();
     // the id is hardcoded
-    if squad_num == 0 {
+    if squad_num == 1 {
         Vec3::new(
             rng.gen_range(-w / 2.0..0.0),
             rng.gen_range(-h / 2.0..0.0),

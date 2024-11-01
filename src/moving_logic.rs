@@ -56,16 +56,23 @@ fn update_entity_in_sh(spatial_hash: &mut SpatialHash, entt: Entity, old_pos: Ve
 
 fn push_entity_to_sh(spatial_hash: &mut SpatialHash, entt: Entity, pos: Vec3) {
     let t = spatial_hash.to_grid_coords(pos);
-    // Based on position in SpatialHash, get the index
     let index = spatial_hash
         .pos_to_index(t)
         .expect("Position out of bounds");
     let cellref = spatial_hash.get_mut(index).expect("Index out of bounds");
-    cellref.push(entt); // Direct addition, without checking
-    println!(
-        "Entity with index {} and coordinates {} added \n",
-        index, pos
-    );
+
+    println!("Current entities in cell: {:?}", cellref);
+
+    // Проверяем наличие сущности в ячейке
+    if cellref.iter().find(|&&e| e == entt).is_none() {
+        println!(
+            "Entity with SHindex {} and coordinates shX:{} and shY: {}, world: {} added ENTITY: {} \n",
+            index, t.x, t.y, pos, &entt
+        );
+        cellref.push(entt);
+    } else {
+        println!("Entity {} already exists in new cell!", entt);
+    }
 }
 
 pub fn movable_system(
@@ -75,11 +82,7 @@ pub fn movable_system(
 ) {
     //print!("...........Movable system call..........");
     let min = Vector3 { x: 0, y: 0, z: 0 };
-    let max = Vector3 {
-        x: 800,
-        y: 600,
-        z: 1,
-    };
+    let max = Vector3 { x: 40, y: 40, z: 1 };
     // Borrow spatial_hash as mutable only in this block to avoid conflicts
     {
         let spatial_hash = &mut *spatial_hash;
