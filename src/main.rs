@@ -2,8 +2,9 @@ mod components;
 pub mod moving_logic;
 mod resources;
 mod setup;
+mod smart_move;
 pub mod winit;
-use crate::moving_logic::{initialize_spatial_hash, movable_system, SpatialHashPlugin};
+use crate::moving_logic::SpatialHashPlugin;
 use crate::resources::WinSize;
 use crate::setup::InitialState;
 use crate::winit::winit;
@@ -35,7 +36,7 @@ impl Default for GameConstants {
             squad_size: 10,
             round_duration: Duration::from_secs(10),
             map_size: 4000.0,
-            spatial_hash_cell_size: 64.0,
+            spatial_hash_cell_size: 100.0,
         }
     }
 }
@@ -51,6 +52,5 @@ fn main() {
         .insert_resource(WinSize { w: WIN_X, h: WIN_Y })
         .insert_resource(spatial_hash)
         .add_plugins((InitialState, DefaultPlugins.set(winit(WIN_X, WIN_Y))))
-        .add_plugins(SpatialHashPlugin)
         .run();
 }

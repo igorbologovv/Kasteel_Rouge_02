@@ -1,19 +1,21 @@
+use std::default;
+
 use bevy::prelude::*;
 use cgmath::Vector3;
 #[derive(Component)]
 pub struct Soldier {
-    pub is_active: bool,
-    pub is_moving: bool,
+    pub hit_chance: i8,
+    pub dodge_chance: i8,
     pub velocity: (i8, i8, i8),
     pub squad_num: u16,
 }
 impl Soldier {
     pub fn new(vx: i8, vy: i8, vz: i8, squad_num: u16) -> Self {
         Soldier {
-            is_active: false,
-            is_moving: false,
             velocity: (vx, vy, vz),
             squad_num: squad_num,
+            hit_chance: 50,
+            dodge_chance: 50,
         }
     }
 }
@@ -42,6 +44,10 @@ pub struct SpriteSize {
 
 #[derive(Component)]
 pub struct Condition {
+    pub is_active: bool,
+    pub is_moving: bool,
+    pub is_dead: bool,
+    pub is_wounded: bool,
     pub morale: i8,
     pub stamina: i8,
     pub strength: i8,
@@ -76,3 +82,26 @@ pub enum SquadOrder {
 
 #[derive(Component, Debug)]
 pub struct Squad(pub u16);
+
+#[derive(Component, Debug)]
+pub struct AIComponent {
+    pub situation_near: [i8; 8],
+    pub situation_far: [i8; 8],
+}
+
+impl AIComponent {
+    fn new(snear: [i8; 8], sfar: [i8; 8]) -> AIComponent {
+        AIComponent {
+            situation_near: snear,
+            situation_far: sfar,
+        }
+    }
+}
+impl Default for AIComponent {
+    fn default() -> Self {
+        AIComponent {
+            situation_near: [0, 0, 0, 0, 0, 0, 0, 0],
+            situation_far: [0, 0, 0, 0, 0, 0, 0, 0],
+        }
+    }
+}
