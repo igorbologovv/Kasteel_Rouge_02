@@ -1,4 +1,4 @@
-use crate::resources::{self, WinSize};
+use crate::resources::WinSize;
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 

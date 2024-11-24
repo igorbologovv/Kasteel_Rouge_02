@@ -1,4 +1,4 @@
-use std::default;
+
 
 use bevy::prelude::*;
 use cgmath::Vector3;
@@ -26,13 +26,14 @@ impl Soldier {
         }
     }
 }
+#[allow(dead_code)]
 #[derive(Component)]
 pub struct SharedMemory {
     pub alies: [bool; 8],
     pub enimies: [bool; 8],
     pub action_probability: [f32; 4],
 }
-
+#[allow(dead_code)]
 //Shred memory componen should be associated with each squad. It means only soldiers of certain squad can interact with this struct
 impl SharedMemory {
     pub fn new() -> SharedMemory {
@@ -48,7 +49,7 @@ pub struct SpriteSize {
     pub height: i8,
     pub width: i8,
 }
-
+#[allow(dead_code)]
 #[derive(Component)]
 pub struct Condition {
     pub is_active: bool,
@@ -63,12 +64,12 @@ pub struct Condition {
 
 #[derive(Component, Copy, Clone)]
 pub struct Team(pub u8);
-
+#[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct PlayerId {
     pub id: u32,
 }
-
+#[allow(dead_code)]
 #[derive(Component, Debug)]
 pub enum UnitType {
     Archers,
@@ -80,21 +81,21 @@ impl Default for UnitType {
         UnitType::Swordsman
     }
 }
+#[allow(dead_code)]
 #[derive(Component, Debug, Copy, Clone)]
 pub enum SquadOrder {
     MoveTo(f32, f32),
     Defence(bool),
     Attack(bool),
 }
-
+#[allow(dead_code)]
 #[derive(Component, Debug)]
 pub struct Squad(pub u16);
-
+#[allow(dead_code)]
 #[derive(Component)]
 pub struct AIComponent {
-    pub allies_directions: [u8; 8],   // Массив направлений союзников
-    pub enemies_directions: [u8; 8],  // Массив направлений врагов
-    // Добавьте дополнительные поля, если необходимо
+    pub allies_directions: [u8; 8],   // Friends
+    pub enemies_directions: [u8; 8],  // Enemies
 }
 
 impl AIComponent {

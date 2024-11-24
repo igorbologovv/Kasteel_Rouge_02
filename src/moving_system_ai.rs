@@ -1,13 +1,11 @@
-use crate::components::{Condition, Soldier, SpriteSize, Team, AIComponent};
-use crate::resources::{SpatialHash, SquadVec, TargetSquads, WinSize};
-use bevy::ecs::query;
+use crate::components::{Team, AIComponent};
+use crate::resources::SpatialHash;
 use bevy::prelude::*;
 use cgmath::Vector3;
-use rand::Rng;
+use std::collections:: HashSet;
 /*
 In this file we are collecting data for AIcomponent of each soldier
-Particularly the direction to a friend or enemy,
-For more efficiency the update happens in one cycle for everyone who was found around the target. 
+Particularly the direction to friend or enemy,
  */
 
 
@@ -88,7 +86,7 @@ pub fn define_direction_to_enemy_cmass(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
     result_dir
 }
 
-use std::collections::{HashMap, HashSet};
+
 
 pub fn update_directions_system(
     mut spatial_hash: ResMut<SpatialHash>,
@@ -105,7 +103,7 @@ pub fn update_directions_system(
     //let mut other_updates: HashMap<Entity, (HashSet<usize>, HashSet<usize>)> = HashMap::new();
 
     for (my_entity, my_team, my_transform, mut my_ai_component) in query.iter_mut() {
-        // Инициализируем массивы направлений нулями
+        // Clear directions 
         my_ai_component.allies_directions = [0u8; 8];
         my_ai_component.enemies_directions = [0u8; 8];
 
@@ -127,9 +125,9 @@ pub fn update_directions_system(
 
                 // Получаем индекс ячейки
                 if let Some(index) = spatial_hash.sh.pos_to_index(cell_coords) {
-                    // ================== LOGICAL BLOCK====================
-                    //While iterating around my_entity we check each cell, since cell can contain several entities 
-                    //we have to iterate thought SmallVec inside the cell.
+                  
+                    //While iterating cells around my_entity we check each cell, since cell can contain several entities 
+                    //we have to iterate through SmallVec inside the cell.
                     if let Some(cell_entities) = spatial_hash.sh.get(index) {
                         for &other_entity in cell_entities {
                             if other_entity == my_entity {
@@ -154,11 +152,11 @@ pub fn update_directions_system(
                                 if direction_to_other != 255 {
                                     let direction_to_other_usize = direction_to_other as usize;
                                     //Get direction from other entity to me
-                                    let direction_to_me = define_direction_to_entity(
-                                        my_transform.translation,
-                                        other_transform.translation,
-                                    );
-                                    let direction_to_me_usize = direction_to_me as usize;//cast to usize
+                                    //let direction_to_me = define_direction_to_entity(
+                                    //     my_transform.translation,
+                                    //     other_transform.translation,
+                                    // );
+                                    //let direction_to_me_usize = direction_to_me as usize;//cast to usize
 
                                     // Check if it is a friend
                                     if other_team.0 == my_team.0 {
@@ -172,7 +170,7 @@ pub fn update_directions_system(
                                         //     .0 // HashSet союзников
                                         //     .insert(direction_to_me_usize);
                                     } else {
-                                        // Это враг
+                                        // Enemy found
                                         my_ai_component.enemies_directions[direction_to_other_usize] += 1;
 
                                         // Update my pos for enemy
@@ -189,6 +187,8 @@ pub fn update_directions_system(
                 }
             }
         }
+
+
     }
 
     // // Применяем сохраненные обновления к AIComponent других сущностей

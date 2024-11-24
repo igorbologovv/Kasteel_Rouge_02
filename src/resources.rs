@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 use cgmath::Vector3;
 use smallvec::SmallVec;
-
-use crate::components::Soldier;
-
 type SpatialHashCell = smallvec::SmallVec<[Entity; 6]>;
 
 

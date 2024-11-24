@@ -2,7 +2,7 @@ use crate::components::{AIComponent, Condition, Soldier, SpriteSize, Squad, Team
 use crate::resources::{GameTextures, SpatialHash, SquadVec};
 use crate::resources::WinSize;
 use bevy::prelude::*;
-use cgmath::Vector3;
+
 use rand::Rng;
 pub struct InitialState;
 use crate::update_sh_pos::SpatialHashPlugin;
@@ -34,9 +34,9 @@ fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
     }
 }
 fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>,
-     mut spatial_hash: ResMut<SpatialHash>,
+     spatial_hash: Res<SpatialHash>,
      mut squads: ResMut<SquadVec>,
-     query: Query<(&Team, &Squad, &Soldier, &Condition)>, // For debugivuging
+     //query: Query<(&Team, &Squad, &Soldier, &Condition)>, // For debugivuging
 
     ) {
     // Future parameterization: allow dynamic team/squad setup
@@ -50,7 +50,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
     for (team_id, &squad_count) in teams_squads.iter().enumerate() {
         let texture_handle = choose_sprite((team_id + 1) as u8, &game_textures); 
 
-        for squad_id in 0..squad_count {
+        for _i in 0..squad_count {
             let mut squad =Vec::new();
             for _i in 0..squad_dimensions.0 {
                 for _j in 0..squad_dimensions.1 {
@@ -131,17 +131,15 @@ fn define_position(squad_num: u8, w: f32, h: f32) -> Vec3 {
         )
     }
 }
-
+#[allow(dead_code)]
 #[derive(Resource)]
 struct DebugTimer(Timer);
 
 fn setup_debug_timer(mut commands: Commands) {
     commands.insert_resource(DebugTimer(Timer::from_seconds(0.1, TimerMode::Once)));
 }
-
+#[allow(dead_code)]
 fn print_all_entities(
-    time: Res<Time>,
-    mut timer: ResMut<DebugTimer>,
     squads: Res<SquadVec>,
     query: Query<(&Team, &Squad, &Soldier, &Condition)>,
 ) {

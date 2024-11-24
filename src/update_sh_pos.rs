@@ -1,12 +1,12 @@
-use crate::components::{Condition, Soldier, SpriteSize, Team, AIComponent};
-use crate::resources::{SpatialHash, SquadVec, TargetSquads, WinSize};
-use crate::moving_system_ai::{update_directions_system,define_direction_to_enemy_cmass };
-use bevy::ecs::query;
+use crate::components::{ Soldier, SpriteSize, Team, AIComponent};
+use crate::resources::{SpatialHash, SquadVec, TargetSquads};
+use crate::moving_system_ai::update_directions_system ;
+
 use bevy::prelude::*;
-use cgmath::Vector3;
+
 use rand::Rng;
 #[derive(bevy::ecs::schedule::ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
-struct PrepareUpdate;
+
 pub struct SpatialHashPlugin;
 
 
@@ -60,7 +60,7 @@ pub fn movable_system(
     //    // println!("Squad ID: {}, Center of Mass: ({}, {}, {})", squad_id, center_of_mass.x, center_of_mass.y, center_of_mass.z);
     // }
     // Moving soldier and adding to update buffer if needed
-    for (soldier_entity, mut transform, _sprite_size, mut soldier, team, ai) in soldier_query.iter_mut() {
+    for (soldier_entity, mut transform, _sprite_size, mut soldier, _team, ai) in soldier_query.iter_mut() {
         let old_position = transform.translation;
         println!("Friends for Soldier{}: {}{}{}{}{}{}{}{}", soldier_entity,ai.allies_directions[0],ai.allies_directions[1],ai.allies_directions[2],ai.allies_directions[3],ai.allies_directions[4],ai.allies_directions[5],ai.allies_directions[6],ai.allies_directions[7], );
         // Generate random direction
