@@ -12,8 +12,8 @@ use bevy::prelude::*;
 use resources::{SpatialHash, SquadVec};
 use std::time::Duration;
 
-const WIN_X: f32 = 1200.0;
-const WIN_Y: f32 = 600.0;
+const WIN_X: f32 = 2400.0;
+const WIN_Y: f32 = 1200.0;
 
 #[allow(dead_code)]
 #[derive(Resource)]

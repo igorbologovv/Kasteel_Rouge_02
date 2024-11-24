@@ -8,7 +8,7 @@ In this file we are collecting data for AIcomponent of each soldier
 Particularly the direction to friend or enemy,
  */
 
-
+// this functiion we do not need we have the sacond such  define_direction_to_entity
 pub fn define_direction_to_enemy_cmass(dir: Vec3, my_pos: Vec3) -> [u8; 8] {
     // Массив направлений: N, NE, E, SE, S, SW, W, NW
     let mut result_dir = [0u8; 8];

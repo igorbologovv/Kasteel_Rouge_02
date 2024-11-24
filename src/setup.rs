@@ -7,6 +7,7 @@ use rand::Rng;
 pub struct InitialState;
 use crate::update_sh_pos::SpatialHashPlugin;
 
+
 impl Plugin for InitialState {
     fn build(&self, app: &mut App) {
         app.add_systems(PreStartup, sprite_load_system)
@@ -36,13 +37,29 @@ fn choose_sprite(id: u8, game_textures: &Res<GameTextures>) -> Handle<Image> {
 fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsize: Res<WinSize>,
      spatial_hash: Res<SpatialHash>,
      mut squads: ResMut<SquadVec>,
+     asset_server: Res<AssetServer>
      //query: Query<(&Team, &Squad, &Soldier, &Condition)>, // For debugivuging
 
     ) {
     // Future parameterization: allow dynamic team/squad setup
     println!("SPAWN_SQUADS");
     commands.spawn(Camera2dBundle::default());
+    
 
+    // Calculate the center of the window
+    let center_x = winsize.w / 2.0;
+    let center_y = winsize.h / 2.0;
+
+    // Spawn the sprite at the center
+    commands.spawn(SpriteBundle {
+        texture: asset_server.load("../assets/background.png"),
+        transform: Transform {
+            translation: Vec3::new(0.0, 0.0, 0.0),
+            scale: Vec3::splat(2.0),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
     // Hardcoded example: Each team has a specified number of squads and each element is a team and value is the amount of squads
     let teams_squads = vec![1, 1];
     let squad_dimensions = (2, 2);
@@ -79,6 +96,7 @@ fn spawn_squads(mut commands: Commands, game_textures: Res<GameTextures>, winsiz
                             hit_chance: 50,
                             dodge_chance: 50,
                             sh_coords: shcoords,
+                            current_direction:  Vec3::new(1.0, 2.0, 0.0),
                             center_of_mass: Vec3::new(0.0, 0.0, 0.0),
                             target_direction: Vec3::new(0.0, 0.0, 0.0)
                         })
