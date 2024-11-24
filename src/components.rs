@@ -96,6 +96,8 @@ pub struct Squad(pub u16);
 pub struct AIComponent {
     pub allies_directions: [u8; 8],   // Friends
     pub enemies_directions: [u8; 8],  // Enemies
+    pub cmass_direction_friend: [u8; 8],
+    pub cmass_direction_enemy: [u8; 8], // Center of mass of enemy squad
 }
 
 impl AIComponent {
@@ -103,6 +105,9 @@ impl AIComponent {
         AIComponent {
             allies_directions: [0u8; 8],
             enemies_directions: [0u8; 8],
+            cmass_direction_friend: [0u8; 8],
+            cmass_direction_enemy: [08; 8]
+
             // Инициализируйте дополнительные поля
         }
     }
