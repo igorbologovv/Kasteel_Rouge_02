@@ -60,6 +60,22 @@ impl SpatialHash {
         cellref.retain(|e| *e != entt);
     }
 
+    pub fn get_entities_in_cell(&mut self, futurepos: Vec3) -> Vec<Entity> {
+        // Преобразуем мировую координату в координату сетки
+        let coords = self.to_grid_coords(futurepos);
+
+        // Получаем индекс ячейки
+        if let Some(index) = self.sh.pos_to_index(coords) {
+            // Получаем ссылку на ячейку
+            if let Some(cellref) = self.get(index) {
+                // Возвращаем список сущностей
+                return cellref.iter().cloned().collect();
+            }
+        }
+
+        // Если ячейка пуста или за границами, возвращаем пустой список
+        Vec::new()
+    }
 
 }
 

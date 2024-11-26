@@ -30,19 +30,15 @@ impl Soldier {
 }
 #[allow(dead_code)]
 #[derive(Component)]
-pub struct SharedMemory {
-    pub alies: [bool; 8],
-    pub enimies: [bool; 8],
-    pub action_probability: [f32; 4],
+pub struct SoldierMemory {
+    pub memory: Vec<([u8; 8], f32)>,
 }
 #[allow(dead_code)]
 //Shred memory componen should be associated with each squad. It means only soldiers of certain squad can interact with this struct
-impl SharedMemory {
-    pub fn new() -> SharedMemory {
-        SharedMemory {
-            alies: [false; 8],
-            enimies: [false; 8],
-            action_probability: [0.1; 4],
+impl SoldierMemory {
+    pub fn new() -> SoldierMemory {
+        SoldierMemory {
+            memory: Vec::new()
         }
     }
 }

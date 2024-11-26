@@ -5,6 +5,7 @@ mod resources;
 mod setup;
 pub mod winit;
 pub mod moving_system_ai;
+pub mod probabilities;
 use crate::resources::WinSize;
 use crate::setup::InitialState;
 use crate::winit::winit;
@@ -37,7 +38,7 @@ impl Default for GameConstants {
             squad_size: 10,
             round_duration: Duration::from_secs(10),
             map_size: 4000.0,
-            spatial_hash_cell_size: 200.0,
+            spatial_hash_cell_size: 50.0,
         }
     }
 }

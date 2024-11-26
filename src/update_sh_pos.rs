@@ -5,7 +5,7 @@ use crate::moving_system_ai::update_directions_system;
 use bevy::prelude::*;
 
 use rand::Rng;
-#[derive(bevy::ecs::schedule::ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
+
 
 pub struct SpatialHashPlugin;
 
@@ -60,6 +60,7 @@ pub fn movable_system(
     mut soldier_query: Query<(Entity, &mut Transform, &SpriteSize, &mut Soldier, &Team, &AIComponent)>,
     cmass_id: Res<TargetSquads>,
     time: Res<Time>,
+    team_query: Query<(Entity, &Team)>,
     mut timer: ResMut<DirectionUpdateTimer>,
 ) {
     let mut rng = rand::thread_rng();
@@ -71,12 +72,11 @@ pub fn movable_system(
     // Проверяем, нужно ли обновить направление
     let should_update_direction = timer.timer.finished();
 
-    for (soldier_entity, mut transform, _sprite_size, mut soldier, _team, ai) in soldier_query.iter_mut() {
+    for (soldier_entity, mut transform, _sprite_size, mut soldier, team, ai) in soldier_query.iter_mut() {
         let old_position = transform.translation;
 
         // Обновляем направление, если таймер завершён
         if should_update_direction {
-            // Случайное направление
             let random_direction = Vec3::new(
                 rng.gen_range(-1.0..=1.0),
                 rng.gen_range(-1.0..=1.0),
@@ -103,13 +103,50 @@ pub fn movable_system(
                 }
             }
 
-            // Итоговое направление
             soldier.current_direction = (random_direction * 0.2) + (target_direction * 0.8);
         }
 
         // Вычисление нового положения с учетом направления и скорости
         let move_direction = soldier.current_direction;
-        let new_position = old_position + move_direction * soldier.velocity.0 as f32 ;
+        let new_position = old_position + move_direction * soldier.velocity.0 as f32;
+
+        // Проверяем, занята ли клетка
+        let entities_in_cell = spatial_hash.get_entities_in_cell(new_position);
+
+        let mut should_stop = false;
+        if !entities_in_cell.is_empty() {
+            for entity in entities_in_cell {
+                // Пропускаем самого себя
+                if entity == soldier_entity {
+                    continue;
+                }
+
+                // Проверяем команду
+                if let Ok((_entity, other_team)) = team_query.get(entity) {
+                    if team.0 == other_team.0 {
+                        println!("Союзник найден: {:?}", entity);
+                        soldier.current_direction = Vec3::new(
+                            rng.gen_range(-1.0..=1.0),
+                            rng.gen_range(-1.0..=1.0),
+                            0.0,
+                        )
+                        .normalize();
+                        
+                    } else {
+                        println!("Враг найден: {:?}", entity);
+                        // Изменяем направление при обнаружении врага
+                        should_stop = true; // Останавливаемся, если нашли врага
+                    }
+                }
+            }
+        }
+
+        // Если должны остановиться, пропускаем обновление позиции
+        if should_stop {
+            continue;
+        }
+
+        // Обновляем позицию
         transform.translation = new_position;
 
         // Transform positions to shcoords
@@ -128,6 +165,7 @@ pub fn movable_system(
     // Применяем изменения к spatial hash
     update_entity_in_sh(&mut spatial_hash, update_buffer);
 }
+
 
 fn update_center_of_mass(
     squads: Res<SquadVec>, 
