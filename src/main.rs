@@ -42,7 +42,7 @@ impl Default for GameConstants {
         }
     }
 }
-
+// check git works
 fn main() {
     let game_consts: GameConstants = GameConstants::default();
     let sh_cells = (game_consts.map_size / game_consts.spatial_hash_cell_size).ceil() as usize;
